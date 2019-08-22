@@ -8,17 +8,21 @@ namespace vk_console
 {
     class DialogMessage
     {
-        public string UserId { get; set; }
-        public string PeerId { get; set; }
+
         public string Name { get; set; }
 
+        public string Date { get; set; }
+
+        public string Attaches { get; set; }
         public string Text { get; set; }
 
-        public DialogMessage(string userId, string peerId, string name, string text) {
-            UserId = userId;
-            PeerId = peerId;
+        public DialogMessage(string name, string text, string date, string attaches)
+        {
+            Date = date;
+            Attaches = attaches;
             Name = name;
             Text = text;
         }
     }
 }
+

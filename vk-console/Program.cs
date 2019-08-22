@@ -192,7 +192,7 @@ namespace vk_console
                 }
                 else {
                     
-                    name = peerName;
+                    name = peerName; 
                 }
 
                 string text = o[property.Name]["textInput"].ToString();
