@@ -17,10 +17,10 @@ using VkNet.Model.RequestParams;
 
 namespace vk_console
 {
-    
+
     class Program
     {
-        public const string commands = 
+        public const string commands =
             "\n### Команды:\n" +
             "### messages [получить список диалогов]\n" +
             "### Имя Фамилия [получить сообщения диалога]\n" +
@@ -32,21 +32,23 @@ namespace vk_console
         {
             DataBase.Load();
 
-            if (DataBase.Read("loginFlag") == null || DataBase.Read("loginFlag").Equals("false")) {
+            if (DataBase.Read("loginFlag") == null || DataBase.Read("loginFlag").Equals("false"))
+            {
                 Console.WriteLine("Введите логин:");
                 DataBase.Write("login", Console.ReadLine());
                 Console.WriteLine("Введите пароль:");
                 DataBase.Write("password", Console.ReadLine());
                 DataBase.Write("loginFlag", "true");
             }
-            
+
             string login = DataBase.Read("login").ToString();
             string password = DataBase.Read("password").ToString();
             PGAuth auth = new PGAuth(login, password);
             bool uiFlag = true;
             List<Dialog> dialogs = null;
 
-            if (DataBase.Read("authFlag") == null || DataBase.Read("authFlag").Equals("false")) {
+            if (DataBase.Read("authFlag") == null || DataBase.Read("authFlag").Equals("false"))
+            {
                 auth.ParsDataAuth();
                 try
                 {
@@ -67,24 +69,27 @@ namespace vk_console
 
 
 
-            while (uiFlag) {
+            while (uiFlag)
+            {
                 Console.WriteLine($"{commands}\n\nВведите команду:");
                 string command = Console.ReadLine();
-                switch (command) {
-                    
+                switch (command)
+                {
+
                     case "messages":
                         try
                         {
                             auth.GetDialogs();
                         }
-                        catch (Exception e) {
+                        catch (Exception e)
+                        {
                             Console.WriteLine("Перезапустите программу чтобы обновить данные.");
                             DataBase.Write("loginFlag", "false");
                             DataBase.Write("authFlag", "false");
                             uiFlag = false;
                             break;
                         }
-                        
+
                         dialogs = parseDialogs(readDialogHtmlFromJson());
                         foreach (Dialog v in dialogs)
                             Console.WriteLine(v);
@@ -102,32 +107,37 @@ namespace vk_console
                         break;
                     default:
                         List<DialogMessage> messages = null;
-                        if (command[0] == '~') {
+                        if (command[0] == '~')
+                        {
                             string message = command.Substring(1);
-                            if (currentPeer == null) {
+                            if (currentPeer == null)
+                            {
                                 Console.WriteLine("Зайдите в нужный диалог и повторите команду.");
                                 break;
                             }
-                            auth.SendMessage(message,currentPeer);
+                            auth.SendMessage(message, currentPeer);
                             auth.GetTalker(currentPeer);
                             messages = readMessagesFromJson(DataBase.Read("TalkerResponse").ToString());
                             foreach (DialogMessage v in messages)
                                 Console.WriteLine(v.Name + " - " + v.Text);
                             break;
                         }
-                        if (dialogs == null) {
+                        if (dialogs == null)
+                        {
                             Console.WriteLine("В начале нужно получить список диалогов.");
                             break;
                         }
-                        foreach (Dialog v in dialogs) {
-                            if (v.Talker.Trim() == command.Trim()) {
+                        foreach (Dialog v in dialogs)
+                        {
+                            if (v.Talker.Trim() == command.Trim())
+                            {
                                 auth.GetTalker(v.Peer.Trim());
                                 break;
                             }
                         }
                         messages = readMessagesFromJson(DataBase.Read("TalkerResponse").ToString());
                         foreach (DialogMessage v in messages)
-                            Console.WriteLine(v.Name + " - " + v.Text);
+                            Console.WriteLine(String.Format("[{0,-15}] {1,-14}: {2}", v.Date, v.Name, v.Text + " " + v.Attaches));
 
                         break;
                 }
@@ -139,10 +149,12 @@ namespace vk_console
 
         }
 
-        public static string readDialogHtmlFromJson() {
+        public static string readDialogHtmlFromJson()
+        {
             string json = DataBase.Read("DialogResponse").ToString();
             JsonTextReader reader = new JsonTextReader(new StringReader(json));
-            while (reader.Read()) {
+            while (reader.Read())
+            {
                 if (reader.Value != null && reader.Value.Equals("html"))
                 {
                     reader.Read();
@@ -154,8 +166,9 @@ namespace vk_console
 
         }
 
-        public static List<DialogMessage> readMessagesFromJson(string json) {
-            
+        public static List<DialogMessage> readMessagesFromJson(string json)
+        {
+
             List<DialogMessage> result = new List<DialogMessage>();
             dynamic stuff = Newtonsoft.Json.Linq.JObject.Parse(json);
 
@@ -175,57 +188,51 @@ namespace vk_console
 
             string membersJson = stuff.data[0].members.ToString();
 
+            Dictionary<string, string> memberDict = new Dictionary<string, string>();
             JObject o = JObject.Parse(membersJson);
-            JObject o1 = (JObject)o[userId];
-            string userName = o1["name"].ToString();
-            o1 = (JObject)o[peerId];
-            string peerName = o1["name"].ToString();
-
+            foreach (KeyValuePair<string, JToken> property in o)
+            {
+                JObject member = JObject.Parse(property.Value.ToString());
+                memberDict.Add(property.Key, member["name"].ToString());
+            }
             string messageJson = stuff.data[0].msgs.ToString();
             o = JObject.Parse(messageJson);
 
-            foreach (JProperty property in o.Properties()) {
-                string name;
-                if (o[property.Name]["authorId"].ToString().Trim().Equals(userId.ToString()))
+            foreach (KeyValuePair<string, JToken> property in o)
+            {
+                JObject message = JObject.Parse(property.Value.ToString());
+                string name = memberDict[message["authorId"].ToString()];
+                string attachesText = "";
+                if (message["attaches"].Type == JTokenType.Object)
                 {
-                    name = userName;
-                }
-                else {
-                    
-                    name = peerName; 
+                    JObject attachesObject = (JObject)message["attaches"];
+                    string temp = attachesObject.ToString();
+                    attachesText += temp.Substring(5, temp.Length - 7);
                 }
 
-                string text = o[property.Name]["textInput"].ToString();
-                if (o[property.Name]["attaches"].Type == JTokenType.Object)
-                {
-                    JObject attaches = (JObject)o[property.Name]["attaches"];
-                    string temp = attaches.ToString();
-                    text += temp.Substring(4, temp.Length - 6);
-                    
-                    
-                }
-                result.Add(new DialogMessage(userId, peerId, name ,text));
-                
-                
+                result.Add(new DialogMessage(name, message["textInput"].ToString(), message["date"].ToString(), attachesText));
             }
+
             return result;
         }
 
-        public static List<Dialog> parseDialogs(string html) {
+        public static List<Dialog> parseDialogs(string html)
+        {
             List<Dialog> result = new List<Dialog>();
             CQ dom = html;
             CQ titles = dom[".convo__title"];
             CQ previews = dom[".convo__text"];
             CQ peerContainer = dom[".convo__body"];
-            
-            
+
+
             List<IDomObject> titleList = titles.ToList();
             List<IDomObject> previewList = previews.ToList();
             List<string> peers = new List<string>();
             peerContainer.Each((i, e) => {
                 string href = e.Attributes.GetAttribute("href");
                 string peer = href.Substring(20);
-                if (href.Contains("chat")) {
+                if (href.Contains("chat"))
+                {
 
                     int temp = Convert.ToInt32(peer);
                     temp += 2000000000;
@@ -233,13 +240,14 @@ namespace vk_console
                 }
                 peers.Add(peer);
             });
-            
-            for (int i = 0; i < titleList.Count; i++) {
+
+            for (int i = 0; i < titleList.Count; i++)
+            {
                 result.Add(new Dialog(peers[i], titleList[i].Cq().Text(), previewList[i].Cq().Text()));
             }
             return result;
         }
-        
+
     }
 }
 
