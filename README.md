@@ -8,3 +8,7 @@
 
 | [Скачать]  | [vk-console-0.0](https://github.com/nayutalienx/vk-console-not-api/releases/download/0.0/vk-console-0.0.zip) |
 | ------------- | ------------- |
+
+
+# Развитие
+Если у вас есть предложения по улучшению программы, то можете отправить пулл реквест.
