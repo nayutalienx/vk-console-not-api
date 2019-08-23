@@ -1,5 +1,8 @@
 ﻿
 
+using System;
+using System.Text.RegularExpressions;
+
 namespace vk_console
 {
     class Dialog : IDialog
@@ -16,7 +19,11 @@ namespace vk_console
         }
 
         public override string ToString() {
-            return $"{Talker} - {Preview}";
+            if (Preview.Length > 90) {
+                Preview = Preview.Substring(0, 90) + "...";
+            }
+            Preview = Regex.Replace(Preview, @"\t|\n|\r", "");
+            return String.Format("{0} - {1}",Talker, Preview);  
         }
     }
 

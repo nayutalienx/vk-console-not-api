@@ -17,8 +17,10 @@ namespace vk_console
         {
             List<string> commands = new List<string>() {
             "\n### Команды:",
-            "### messages [получить список диалогов]",
+            "### dialogs [получить список диалогов]",
+            "### moreDialogs [получить более старые диалоги]",
             "### Имя Фамилия [получить сообщения диалога]",
+            "### more [получить более старые сообщения диалога]",
             "### ~текст сообщения [отправить сообщение в последний посещенный диалог]",
             "### reset [выйти из аккаунта]",
             "### exit [выйти и СОХРАНИТЬ ВСЕ ДАННЫЕ, иначе придется вводить все заново]"
@@ -45,6 +47,7 @@ namespace vk_console
             PGAuth auth = new PGAuth(login, password);
             bool uiFlag = true;
             List<IDialog> dialogs = null;
+            int offset = 20;
 
             if (DataBase.Read("authFlag") == null || DataBase.Read("authFlag").Equals("false"))
             {
@@ -69,7 +72,7 @@ namespace vk_console
             }
 
 
-
+            List<IDialog> messages = null;
             while (uiFlag)
             {
                 Console.ForegroundColor = ConsoleColor.Black;
@@ -90,7 +93,7 @@ namespace vk_console
                 switch (command)
                 {
 
-                    case "messages":
+                    case "dialogs":
                         try
                         {
                             auth.GetDialogs();
@@ -105,8 +108,22 @@ namespace vk_console
                         }
 
                         dialogs = Process.ParseDialogs(Process.ReadDialogHtmlFromJson());
-                        
+                        offset = 20;
                         PrintDialogData(dialogs);
+                        break;
+                    case "moreDialogs":
+                        auth.GetMoreDialogs(offset.ToString());
+
+                        dialogs = Process.ParseMoreDialogsFromJson();
+                        offset += 20;
+                        PrintDialogData(dialogs);
+                        break;
+                    case "more":
+                        if (DataBase.Read("OuterMessageId") != null) {
+                            auth.GetMoreTalker(currentPeer);
+                            messages = Process.ReadMessagesFromJson(DataBase.Read("TalkerResponse").ToString());
+                            PrintDialogData(messages);
+                        }
                         break;
                     case "reset":
                         DataBase.Write("login", "");
@@ -121,7 +138,15 @@ namespace vk_console
                         uiFlag = false;
                         break;
                     default:
-                        List<IDialog> messages = null;
+                        if (dialogs == null)
+                        {
+                            Console.ForegroundColor = ConsoleColor.Cyan;
+                            Console.WriteLine("В начале нужно получить список диалогов.");
+                            break;
+                        }
+
+                        
+
                         if (command[0] == '~')
                         {
                             string message = command.Substring(1);
@@ -138,12 +163,9 @@ namespace vk_console
                             PrintDialogData(messages);
                             break;
                         }
-                        if (dialogs == null)
-                        {
-                            Console.ForegroundColor = ConsoleColor.Cyan;
-                            Console.WriteLine("В начале нужно получить список диалогов.");
-                            break;
-                        }
+
+                        
+
                         foreach (Dialog v in dialogs)
                         {
                             if (v.Talker.Trim() == command.Trim())
@@ -183,9 +205,6 @@ namespace vk_console
                 counter++;
             }
             Console.ResetColor();
-            if (Console.BufferWidth == 120)
-                Console.BufferWidth = 121;
-            Console.BufferWidth = 120;
             
         }
 

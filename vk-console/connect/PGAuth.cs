@@ -159,6 +159,39 @@ namespace vk_console
             }
         }
 
+        public void GetMoreDialogs(string offset) {
+            //  GET/POST request to get MORE dialogs (and remixmdv cookie)
+            using (HttpRequest request = new HttpRequest())
+            {
+                request.AddHeader("Accept", "*/*");
+                request.AddHeader("Accept-Encoding", "gzip, deflate");
+                request.AddHeader("Accept-Language", "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7");
+                request.AddHeader("Cache-Control", "max-age=0");
+                request.KeepAlive = true;
+                request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
+                request.AddHeader("Cookie", DataBase.Read("MainCookies") + "; remixff=10; " + DataBase.Read("remixsid"));
+                request.AddHeader("Host", "m.vk.com");
+                request.AddHeader("Origin", "https://m.vk.com");
+                request.AddHeader("Referer", "https://m.vk.com/feed");
+                request.AddHeader("Sec-Fetch-Mode", "cors");
+                request.AddHeader("Sec-Fetch-Site", "same-origin");
+                request.UserAgent = USER_AGENT;
+                request.AddHeader("X-Ajax-Nav", "true");
+                request.AddHeader("X-Requested-With", "XMLHttpRequest");
+                RequestParams Params = new RequestParams();
+                Params["offset"] = offset;
+                Params["_ajax"] = "1";
+
+                request.AllowAutoRedirect = false;
+                var resp = request.Post(new Uri("https://m.vk.com/mail"), Params).ToString();
+                DataBase.Write("DialogResponse", resp.ToString());
+
+
+                var cookiesCollection = request.Cookies.GetCookieHeader("https://m.vk.com/");
+                DataBase.Write("remixmdv", cookiesCollection);
+            }
+        }
+
         public void GetTalker(string peer) {
             //  POST request to get messages with current talker
             using (HttpRequest request = new HttpRequest())
@@ -182,6 +215,42 @@ namespace vk_console
                 RequestParams Params = new RequestParams();
                 Params["act"] = "show";
                 Params["peer_id"] = peer;
+                Params["direction"] = "before";
+                Params["_ajax"] = "1";
+
+
+                var resp = request.Post(new Uri("https://m.vk.com/mail"), Params);
+                DataBase.Write("TalkerResponse", resp.ToString());
+
+                var cookiesCollection = request.Cookies.GetCookieHeader("https://m.vk.com/");
+                DataBase.Write("remixmdv", cookiesCollection);
+            }
+        }
+
+        public void GetMoreTalker(string peer) {
+            //  POST request to get MORE messages with current talker
+            using (HttpRequest request = new HttpRequest())
+            {
+                request.AddHeader("Accept", "*/*");
+                request.AddHeader("Accept-Encoding", "gzip, deflate");
+                request.AddHeader("Accept-Language", "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7");
+                request.KeepAlive = true;
+                request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
+                request.AddHeader("Cookie", DataBase.Read("MainCookies") + "; remixff=10; " + DataBase.Read("remixsid") + "; " + DataBase.Read("remixmdv"));
+                request.AddHeader("Host", "m.vk.com");
+                request.AddHeader("Origin", "https://m.vk.com");
+                request.AddHeader("Referer", "https://m.vk.com/mail");
+                request.AddHeader("Sec-Fetch-Mode", "cors");
+                request.AddHeader("Sec-Fetch-Site", "same-origin");
+                request.UserAgent = USER_AGENT;
+                request.AddHeader("X-Requested-With", "XMLHttpRequest");
+
+                request.AllowAutoRedirect = false;
+
+                RequestParams Params = new RequestParams();
+                Params["act"] = "show";
+                Params["peer_id"] = peer;
+                Params["msg"] = DataBase.Read("OuterMessageId");
                 Params["direction"] = "before";
                 Params["_ajax"] = "1";
 

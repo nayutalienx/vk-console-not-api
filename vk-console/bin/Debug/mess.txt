@@ -1,1 +1,0 @@
-/mail?act=send&to=100&hash=1566479079_285d815c870ec0be61&from=dialog

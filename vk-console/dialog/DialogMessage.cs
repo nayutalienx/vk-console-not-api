@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 
 namespace vk_console
 {
@@ -22,6 +23,7 @@ namespace vk_console
 
         public override string ToString()
         {
+            Text = Regex.Replace(Text, @"\t|\n|\r", "");
             return String.Format("[{0,-15}] {1,-14}: {2}", Date, Name, Text + " " + Attaches);
         }
     }

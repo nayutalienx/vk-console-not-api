@@ -27,6 +27,25 @@ namespace vk_console.process
 
         }
 
+        public static List<IDialog> ParseMoreDialogsFromJson() {
+            List<IDialog> result = new List<IDialog>();
+            string json = DataBase.Read("DialogResponse").ToString();
+            dynamic stuff = Newtonsoft.Json.Linq.JObject.Parse(json);
+            JObject members = JObject.Parse(stuff.data[0].peers.ToString());
+            Dictionary<string, string> memberDict = new Dictionary<string, string>();
+            foreach (KeyValuePair<string, JToken> property in members) {
+                JObject member = JObject.Parse(property.Value.ToString());
+                memberDict.Add(property.Key, member["title"].ToString());
+            }
+            JObject previews = JObject.Parse(stuff.data[0].msgs.ToString());
+            foreach (KeyValuePair<string, JToken> property in previews) {
+                JObject preview = JObject.Parse(property.Value.ToString());
+                result.Add(new Dialog(preview["peerId"].ToString(), memberDict[preview["peerId"].ToString()], preview["textInput"].ToString()));
+            }
+
+            return result;
+        }
+
         public static List<IDialog> ReadMessagesFromJson(string json)
         {
 
@@ -58,9 +77,13 @@ namespace vk_console.process
             }
             string messageJson = stuff.data[0].msgs.ToString();
             o = JObject.Parse(messageJson);
-
+            bool outerMessageFlag = true;
             foreach (KeyValuePair<string, JToken> property in o)
             {
+                if (outerMessageFlag) {
+                    DataBase.Write("OuterMessageId", property.Key.ToString());
+                    outerMessageFlag = false;
+                }
                 JObject message = JObject.Parse(property.Value.ToString());
                 string name = memberDict[message["authorId"].ToString()];
                 string attachesText = "";
