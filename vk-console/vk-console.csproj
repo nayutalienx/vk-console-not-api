@@ -68,37 +68,35 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
-    <Reference Include="VkNet, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\VkNet.1.45.0\lib\net461\VkNet.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Cookies.cs">
+    <Compile Include="db\Cookies.cs">
       <DependentUpon>Cookies.xsd</DependentUpon>
     </Compile>
-    <Compile Include="Cookies.Designer.cs">
+    <Compile Include="db\Cookies.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Cookies.xsd</DependentUpon>
     </Compile>
-    <Compile Include="DataBase.cs" />
-    <Compile Include="Dialog.cs" />
-    <Compile Include="DialogMessage.cs" />
-    <Compile Include="PGAuth.cs" />
+    <Compile Include="db\DataBase.cs" />
+    <Compile Include="dialog\Dialog.cs" />
+    <Compile Include="dialog\DialogMessage.cs" />
+    <Compile Include="connect\PGAuth.cs" />
+    <Compile Include="process\Process.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="Cookies.xsc">
+    <None Include="db\Cookies.xsc">
       <DependentUpon>Cookies.xsd</DependentUpon>
     </None>
-    <None Include="Cookies.xsd">
+    <None Include="db\Cookies.xsd">
       <SubType>Designer</SubType>
       <Generator>MSDataSetGenerator</Generator>
       <LastGenOutput>Cookies.Designer.cs</LastGenOutput>
     </None>
-    <None Include="Cookies.xss">
+    <None Include="db\Cookies.xss">
       <DependentUpon>Cookies.xsd</DependentUpon>
     </None>
     <None Include="packages.config" />

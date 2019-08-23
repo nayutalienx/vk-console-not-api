@@ -39,7 +39,6 @@ C:\Users\nayutalienx\Source\Repos\vk-console-not-api\vk-console\bin\Debug\Micros
 C:\Users\nayutalienx\Source\Repos\vk-console-not-api\vk-console\bin\Debug\Microsoft.Extensions.DependencyInjection.dll
 C:\Users\nayutalienx\Source\Repos\vk-console-not-api\vk-console\bin\Debug\Microsoft.Extensions.Logging.Abstractions.dll
 C:\Users\nayutalienx\Source\Repos\vk-console-not-api\vk-console\bin\Debug\Newtonsoft.Json.dll
-C:\Users\nayutalienx\Source\Repos\vk-console-not-api\vk-console\bin\Debug\VkNet.dll
 C:\Users\nayutalienx\Source\Repos\vk-console-not-api\vk-console\bin\Debug\CsQuery.xml
 C:\Users\nayutalienx\Source\Repos\vk-console-not-api\vk-console\bin\Debug\Flurl.xml
 C:\Users\nayutalienx\Source\Repos\vk-console-not-api\vk-console\bin\Debug\Flurl.Http.xml
@@ -50,7 +49,6 @@ C:\Users\nayutalienx\Source\Repos\vk-console-not-api\vk-console\bin\Debug\Micros
 C:\Users\nayutalienx\Source\Repos\vk-console-not-api\vk-console\bin\Debug\Microsoft.Extensions.DependencyInjection.Abstractions.xml
 C:\Users\nayutalienx\Source\Repos\vk-console-not-api\vk-console\bin\Debug\Microsoft.Extensions.Logging.Abstractions.xml
 C:\Users\nayutalienx\Source\Repos\vk-console-not-api\vk-console\bin\Debug\Newtonsoft.Json.xml
-C:\Users\nayutalienx\Source\Repos\vk-console-not-api\vk-console\bin\Debug\VkNet.xml
 C:\Users\nayutalienx\Source\Repos\vk-console-not-api\vk-console\obj\Debug\vk-console.csprojAssemblyReference.cache
 C:\Users\nayutalienx\Source\Repos\vk-console-not-api\vk-console\obj\Debug\vk-console.csproj.CoreCompileInputs.cache
 C:\Users\nayutalienx\Source\Repos\vk-console-not-api\vk-console\obj\Debug\vk-console.csproj.CopyComplete
