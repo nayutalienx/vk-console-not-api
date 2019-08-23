@@ -11,32 +11,40 @@ namespace vk_console
 
     class Program
     {
-        public const string commands =
-            "\n### Команды:\n" +
-            "### messages [получить список диалогов]\n" +
-            "### Имя Фамилия [получить сообщения диалога]\n" +
-            "### ~текст сообщения [отправить сообщение в последний посещенный диалог]\n" +
-            "### reset [выйти из аккаунта]\n" +
-            "### exit [выйти и СОХРАНИТЬ ВСЕ ДАННЫЕ, иначе придется вводить все заново]";
+        
         public static string currentPeer = null;
         static void Main(string[] args)
         {
-            DataBase.Load();
+            List<string> commands = new List<string>() {
+            "\n### Команды:",
+            "### messages [получить список диалогов]",
+            "### Имя Фамилия [получить сообщения диалога]",
+            "### ~текст сообщения [отправить сообщение в последний посещенный диалог]",
+            "### reset [выйти из аккаунта]",
+            "### exit [выйти и СОХРАНИТЬ ВСЕ ДАННЫЕ, иначе придется вводить все заново]"
+            };
 
+            DataBase.Load();
+            //  console.settings
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.SetWindowSize(120,33);
+            
             if (DataBase.Read("loginFlag") == null || DataBase.Read("loginFlag").Equals("false"))
             {
                 Console.WriteLine("Введите логин:");
                 DataBase.Write("login", Console.ReadLine());
                 Console.WriteLine("Введите пароль:");
+                Console.ForegroundColor = Console.BackgroundColor;
                 DataBase.Write("password", Console.ReadLine());
                 DataBase.Write("loginFlag", "true");
+                Console.ForegroundColor = ConsoleColor.Cyan;
             }
 
             string login = DataBase.Read("login").ToString();
             string password = DataBase.Read("password").ToString();
             PGAuth auth = new PGAuth(login, password);
             bool uiFlag = true;
-            List<Dialog> dialogs = null;
+            List<IDialog> dialogs = null;
 
             if (DataBase.Read("authFlag") == null || DataBase.Read("authFlag").Equals("false"))
             {
@@ -47,6 +55,7 @@ namespace vk_console
                 }
                 catch (Exception e)
                 {
+                    Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine("Ошибка авторизации. Нажмите любую кнопку чтобы закрыть программу и ввести данные снова.");
                     DataBase.Write("loginFlag", "false");
                     DataBase.Write("authFlag", "false");
@@ -54,6 +63,7 @@ namespace vk_console
                     Console.ReadKey();
                     return;
                 }
+                Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("Авторизация завершена.");
                 DataBase.Write("authFlag", "true");
             }
@@ -62,7 +72,16 @@ namespace vk_console
 
             while (uiFlag)
             {
-                Console.WriteLine($"{commands}\n\nВведите команду:");
+                Console.ForegroundColor = ConsoleColor.Black;
+                Console.BackgroundColor = ConsoleColor.Gray;
+                foreach(string v in commands)
+                    Console.WriteLine(String.Format("{0}", v));
+                Console.ResetColor();
+                if (Console.BufferWidth == 120)
+                    Console.BufferWidth = 121;
+                Console.BufferWidth = 120;
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.WriteLine("\nВведите команду:");
                 string command = Console.ReadLine();
                 switch (command)
                 {
@@ -81,15 +100,16 @@ namespace vk_console
                             break;
                         }
 
-                        dialogs = Process.ParseDialogs(ReadDialogHtmlFromJson());
-                        foreach (Dialog v in dialogs)
-                            Console.WriteLine(v);
+                        dialogs = Process.ParseDialogs(Process.ReadDialogHtmlFromJson());
+                        
+                        PrintDialogData(dialogs);
                         break;
                     case "reset":
                         DataBase.Write("login", "");
                         DataBase.Write("password", "");
                         DataBase.Write("loginFlag", "false");
                         DataBase.Write("authFlag", "false");
+                        Console.ForegroundColor = ConsoleColor.Cyan;
                         Console.WriteLine("Данные стерты. Перезапустите программу чтобы войти заново.");
                         uiFlag = false;
                         break;
@@ -97,24 +117,26 @@ namespace vk_console
                         uiFlag = false;
                         break;
                     default:
-                        List<DialogMessage> messages = null;
+                        List<IDialog> messages = null;
                         if (command[0] == '~')
                         {
                             string message = command.Substring(1);
                             if (currentPeer == null)
                             {
+                                Console.ForegroundColor = ConsoleColor.Cyan;
                                 Console.WriteLine("Зайдите в нужный диалог и повторите команду.");
                                 break;
                             }
                             auth.SendMessage(message, currentPeer);
                             auth.GetTalker(currentPeer);
                             messages = Process.ReadMessagesFromJson(DataBase.Read("TalkerResponse").ToString());
-                            foreach (DialogMessage v in messages)
-                                Console.WriteLine(v);
+                            
+                            PrintDialogData(messages);
                             break;
                         }
                         if (dialogs == null)
                         {
+                            Console.ForegroundColor = ConsoleColor.Cyan;
                             Console.WriteLine("В начале нужно получить список диалогов.");
                             break;
                         }
@@ -127,37 +149,42 @@ namespace vk_console
                             }
                         }
                         messages = Process.ReadMessagesFromJson(DataBase.Read("TalkerResponse").ToString());
-                        foreach (DialogMessage v in messages)
-                            Console.WriteLine(v);
+                        
+                        PrintDialogData(messages);
 
                         break;
                 }
             }
 
             DataBase.Save();
+            Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("Нажмите любую кнопку чтобы выйти.");
             Console.ReadKey();
 
         }
 
-        public static string ReadDialogHtmlFromJson()
+        
+        public static void PrintDialogData(List<IDialog> dialogs)
         {
-            string json = DataBase.Read("DialogResponse").ToString();
-            JsonTextReader reader = new JsonTextReader(new StringReader(json));
-            while (reader.Read())
+            Console.Clear();
+            int counter = 1;
+            Console.ForegroundColor = ConsoleColor.White;
+            foreach (IDialog v in dialogs)
             {
-                if (reader.Value != null && reader.Value.Equals("html"))
-                {
-                    reader.Read();
-                    return reader.Value.ToString();
-                }
+                if (counter % 2 == 0)
+                    Console.BackgroundColor = ConsoleColor.DarkBlue;
+                else
+                    Console.BackgroundColor = ConsoleColor.DarkCyan;
+                Console.WriteLine(String.Format("{0}", v));
+                counter++;
             }
-            return null;
-
-
+            Console.ResetColor();
+            if (Console.BufferWidth == 120)
+                Console.BufferWidth = 121;
+            Console.BufferWidth = 120;
+            
         }
 
-        
 
     }
 }

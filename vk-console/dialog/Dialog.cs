@@ -2,7 +2,7 @@
 
 namespace vk_console
 {
-    class Dialog
+    class Dialog : IDialog
     {
         public string Peer { get; set; }
         public string Talker { get; set; }
@@ -12,10 +12,12 @@ namespace vk_console
             Peer = peer;
             Talker = talker;
             Preview = preview;
+            
         }
 
         public override string ToString() {
             return $"{Talker} - {Preview}";
         }
     }
+
 }
