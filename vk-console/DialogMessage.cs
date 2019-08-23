@@ -23,6 +23,11 @@ namespace vk_console
             Name = name;
             Text = text;
         }
+
+        public override string ToString()
+        {
+            return String.Format("[{0,-15}] {1,-14}: {2}", Date, Name, Text + " " + Attaches);
+        }
     }
 }
 

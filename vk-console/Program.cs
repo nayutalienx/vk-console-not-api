@@ -119,7 +119,7 @@ namespace vk_console
                             auth.GetTalker(currentPeer);
                             messages = readMessagesFromJson(DataBase.Read("TalkerResponse").ToString());
                             foreach (DialogMessage v in messages)
-                                Console.WriteLine(String.Format("[{0,-15}] {1,-14}: {2}", v.Date, v.Name, v.Text + " " + v.Attaches));
+                                Console.WriteLine(v);
                             break;
                         }
                         if (dialogs == null)
@@ -137,7 +137,7 @@ namespace vk_console
                         }
                         messages = readMessagesFromJson(DataBase.Read("TalkerResponse").ToString());
                         foreach (DialogMessage v in messages)
-                            Console.WriteLine(String.Format("[{0,-15}] {1,-14}: {2}", v.Date, v.Name, v.Text + " " + v.Attaches));
+                            Console.WriteLine(v);
 
                         break;
                 }
