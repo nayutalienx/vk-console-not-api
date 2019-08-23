@@ -82,6 +82,10 @@ namespace vk_console
                 Console.BufferWidth = 120;
                 Console.ForegroundColor = ConsoleColor.Cyan;
                 Console.WriteLine("\nВведите команду:");
+                Console.SetIn(new StreamReader(Console.OpenStandardInput(),
+                               Console.InputEncoding,
+                               false,
+                               bufferSize: 1024));
                 string command = Console.ReadLine();
                 switch (command)
                 {
