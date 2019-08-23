@@ -27,10 +27,10 @@ namespace vk_console.process
 
         }
 
-        public static List<DialogMessage> ReadMessagesFromJson(string json)
+        public static List<IDialog> ReadMessagesFromJson(string json)
         {
 
-            List<DialogMessage> result = new List<DialogMessage>();
+            List<IDialog> result = new List<IDialog>();
             dynamic stuff = Newtonsoft.Json.Linq.JObject.Parse(json);
 
             string userId = stuff.data[0].cur.userId;
@@ -77,9 +77,9 @@ namespace vk_console.process
             return result;
         }
 
-        public static List<Dialog> ParseDialogs(string html)
+        public static List<IDialog> ParseDialogs(string html)
         {
-            List<Dialog> result = new List<Dialog>();
+            List<IDialog> result = new List<IDialog>();
             CQ dom = html;
             CQ titles = dom[".convo__title"];
             CQ previews = dom[".convo__text"];

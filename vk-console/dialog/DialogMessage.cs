@@ -2,7 +2,7 @@
 
 namespace vk_console
 {
-    class DialogMessage
+    class DialogMessage : IDialog
     {
 
         public string Name { get; set; }
