@@ -6,8 +6,8 @@
 3. Введите логин и пароль.
 4. Пользуйтесь консольным мессенджером ВКонтакте!
 
-| [Скачать]  | [vk-console](https://github.com/nayutalienx/vk-console-not-api/releases/download/0.0/vk-console.zip) |
-| ------------- | ------------- |
+| [Скачать vk-console](https://github.com/nayutalienx/vk-console-not-api/releases/download/0.0/vk-console.zip) |
+| ------------- |
 
 # Возможности
 
