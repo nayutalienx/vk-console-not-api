@@ -22,6 +22,7 @@ namespace vk_console
             "### Имя Фамилия [получить сообщения диалога]",
             "### more [получить более старые сообщения диалога]",
             "### ~текст сообщения [отправить сообщение в последний посещенный диалог]",
+            "### doc Название документа.тип [загрузить документ в папку docs]",
             "### reset [выйти из аккаунта]",
             "### exit [выйти и СОХРАНИТЬ ВСЕ ДАННЫЕ, иначе придется вводить все заново]"
             };
@@ -44,17 +45,17 @@ namespace vk_console
 
             string login = DataBase.Read("login").ToString();
             string password = DataBase.Read("password").ToString();
-            PGAuth auth = new PGAuth(login, password);
+            ConnectVk connection = new ConnectVk(login, password);
             bool uiFlag = true;
             List<IDialog> dialogs = null;
             int offset = 20;
 
             if (DataBase.Read("authFlag") == null || DataBase.Read("authFlag").Equals("false"))
             {
-                auth.ParsDataAuth();
+                connection.ParsDataAuth();
                 try
                 {
-                    auth.Auth();
+                    connection.Auth();
                 }
                 catch (Exception e)
                 {
@@ -80,9 +81,10 @@ namespace vk_console
                 foreach(string v in commands)
                     Console.WriteLine(String.Format("{0}", v));
                 Console.ResetColor();
-                if (Console.BufferWidth == 120)
-                    Console.BufferWidth = 121;
-                Console.BufferWidth = 120;
+                
+                Console.BufferWidth++;
+                Console.BufferWidth--;
+
                 Console.ForegroundColor = ConsoleColor.Cyan;
                 Console.WriteLine("\nВведите команду:");
                 Console.SetIn(new StreamReader(Console.OpenStandardInput(),
@@ -96,7 +98,7 @@ namespace vk_console
                     case "dialogs":
                         try
                         {
-                            auth.GetDialogs();
+                            connection.GetDialogs();
                         }
                         catch (Exception e)
                         {
@@ -112,7 +114,7 @@ namespace vk_console
                         PrintDialogData(dialogs);
                         break;
                     case "moreDialogs":
-                        auth.GetMoreDialogs(offset.ToString());
+                        connection.GetMoreDialogs(offset.ToString());
 
                         dialogs = Process.ParseMoreDialogsFromJson();
                         offset += 20;
@@ -120,7 +122,7 @@ namespace vk_console
                         break;
                     case "more":
                         if (DataBase.Read("OuterMessageId") != null) {
-                            auth.GetMoreTalker(currentPeer);
+                            connection.GetMoreTalker(currentPeer);
                             messages = Process.ReadMessagesFromJson(DataBase.Read("TalkerResponse").ToString());
                             PrintDialogData(messages);
                         }
@@ -145,7 +147,37 @@ namespace vk_console
                             break;
                         }
 
-                        
+                        if (command.Substring(0, 3).Equals("doc")) {
+                            if (messages == null) {
+                                Console.WriteLine("В начале нужно получить список сообщений.");
+                                break;
+                            }
+                            string fileName = command.Substring(4).Trim();
+                            string fileUrl = null;
+                            foreach (DialogMessage v in messages) {
+                                foreach (KeyValuePair<string, string> kv in v.Docs) {
+                                    if (kv.Value.Trim().Equals(fileName)) {
+                                        fileUrl = kv.Key;
+                                    }
+                                }
+                            }
+                            if (fileUrl == null)
+                            {
+                                Console.WriteLine("Данного файла не существует.");
+                                break;
+                            }
+                            else {
+                                Console.WriteLine("Начинаю загрузку файла.\n"+fileUrl);
+                                string location = connection.GetDocumentLocation(fileUrl, currentPeer);
+                                connection.DownloadDocument(location, "docs\\"+fileName, currentPeer);
+                                Console.Clear();
+                                PrintDialogData(messages);
+                                Console.ForegroundColor = ConsoleColor.Cyan;
+                                Console.WriteLine("Файл загружен в папку docs.");
+                            }
+
+                            break;
+                        }
 
                         if (command[0] == '~')
                         {
@@ -156,8 +188,8 @@ namespace vk_console
                                 Console.WriteLine("Зайдите в нужный диалог и повторите команду.");
                                 break;
                             }
-                            auth.SendMessage(message, currentPeer);
-                            auth.GetTalker(currentPeer);
+                            connection.SendMessage(message, currentPeer);
+                            connection.GetTalker(currentPeer);
                             messages = Process.ReadMessagesFromJson(DataBase.Read("TalkerResponse").ToString());
                             
                             PrintDialogData(messages);
@@ -170,7 +202,7 @@ namespace vk_console
                         {
                             if (v.Talker.Trim() == command.Trim())
                             {
-                                auth.GetTalker(v.Peer.Trim());
+                                connection.GetTalker(v.Peer.Trim());
                                 break;
                             }
                         }

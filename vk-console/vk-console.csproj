@@ -81,7 +81,7 @@
     <Compile Include="db\DataBase.cs" />
     <Compile Include="dialog\Dialog.cs" />
     <Compile Include="dialog\DialogMessage.cs" />
-    <Compile Include="connect\PGAuth.cs" />
+    <Compile Include="connect\ConnectVk.cs" />
     <Compile Include="dialog\IDialog.cs" />
     <Compile Include="process\Process.cs" />
     <Compile Include="Program.cs" />

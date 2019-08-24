@@ -94,7 +94,21 @@ namespace vk_console.process
                     attachesText += temp.Substring(5, temp.Length - 7);
                 }
 
-                result.Add(new DialogMessage(name, message["textInput"].ToString(), message["date"].ToString(), attachesText));
+                Dictionary<string, string> docs = new Dictionary<string, string>();
+
+                if (attachesText.Contains("doc")) {
+                    string attachesHTML = message["attachesHTML"].ToString();
+                    CQ dom = attachesHTML;
+                    CQ docContainer = dom[".mr_label"];
+                    docContainer.Each((i, e) => {
+                        string href = e.GetAttribute("href");
+                        CQ currentHref = e.InnerHTML;
+                        CQ spanWithName = currentHref[".medias_link_labeled"];
+                        docs.Add("https://m.vk.com" + href, spanWithName.Text());
+                    });   
+                }
+
+                result.Add(new DialogMessage(name, message["textInput"].ToString(), message["date"].ToString(), attachesText, docs));
             }
 
             return result;

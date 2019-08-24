@@ -4,14 +4,14 @@ using System;
 
 namespace vk_console
 {
-    class PGAuth
+    class ConnectVk
     {
         private const string USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36";
         private string Login { get; set; }
         private string Password { get; set; }
         private string Action { get; set; }
         public string Cookie { get; set; }
-        public PGAuth(string login, string password)
+        public ConnectVk(string login, string password)
         {
             Login = login;
             Password = password;
@@ -35,7 +35,6 @@ namespace vk_console
 
             Cookie = GetAuths.Cookies.GetCookieHeader("https://m.vk.com/login") + "; remixmdevice=1920/1080/1/!!-!!!!";
             DataBase.Write("MainCookies", Cookie);
-            //Console.WriteLine(Action);
         }
         public void Auth()
         {
@@ -292,6 +291,51 @@ namespace vk_console
                 var resp = request.Post(new Uri("https://m.vk.com/mail?act=send&to="+peer+"&from=dialog&hash="+DataBase.Read("hashSend")+"&_af="+DataBase.Read("_af")), Params);
                 DataBase.Write("SendResponse", resp.ToString());
 
+            }
+        }
+
+        public string GetDocumentLocation(string url, string peer) {
+            //  GET request to get location of document
+            string location = null;
+            using (HttpRequest request = new HttpRequest())
+            {
+                request.AddHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3");
+                request.AddHeader("Accept-Encoding", "gzip, deflate");
+                request.AddHeader("Accept-Language", "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7");
+                request.KeepAlive = true;
+                request.AddHeader("Cookie", DataBase.Read("MainCookies") + "; remixff=10; " + DataBase.Read("remixsid") + "; " + DataBase.Read("remixmdv"));
+                request.AddHeader("Host", "m.vk.com");
+                request.AddHeader("Origin", "https://m.vk.com");
+                request.AddHeader("Referer", "https://m.vk.com/mail?act=show&peer=" + peer);
+                request.AddHeader("Sec-Fetch-Mode", "navigate");
+                request.AddHeader("Sec-Fetch-Site", "same-origin");
+                request.AddHeader("Sec-Fetch-User", "?1");
+                request.AddHeader("Upgrade-Insecure-Requests", "1");
+                request.UserAgent = USER_AGENT;
+                request.AllowAutoRedirect = false;
+                var resp = request.Get(new Uri(url));
+                location = resp["Location"];
+            }
+            return location;
+        }
+
+        public void DownloadDocument(string location, string filename, string peer) {
+            //  download file via GET
+            using (HttpRequest request = new HttpRequest())
+            {
+                request.AddHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3");
+                request.AddHeader("Accept-Encoding", "gzip, deflate");
+                request.AddHeader("Accept-Language", "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7");
+                request.KeepAlive = true;
+                request.AddHeader("Host", "psv4.userapi.com");
+                request.AddHeader("Referer", "https://m.vk.com/mail?act=show&peer=" + peer);
+                request.AddHeader("Sec-Fetch-Mode", "navigate");
+                request.AddHeader("Sec-Fetch-Site", "cross-site");
+                request.AddHeader("Sec-Fetch-User", "?1");
+                request.AddHeader("Upgrade-Insecure-Requests", "1");
+                request.UserAgent = USER_AGENT;
+                var resp = request.Get(location);
+                resp.ToFile(filename);
             }
         }
     }
