@@ -77,6 +77,8 @@ namespace vk_console.process
                 memberDict.Add(property.Key, member["name"].ToString());
             }
             string messageJson = stuff.data[0].msgs.ToString();
+            string forwardsJson = stuff.data[0].forwards.ToString();
+            JObject forwardsObject = JObject.Parse(forwardsJson);
             o = JObject.Parse(messageJson);
             bool outerMessageFlag = true;
             
@@ -111,8 +113,35 @@ namespace vk_console.process
                         docs.Add("https://m.vk.com" + href, spanWithName.Text());
                     });   
                 }
+
+                string forward = "";
+                JArray forwardsArray = (JArray)message["forwards"];
+                if (forwardsArray.Count > 0) {
+                    forward += "\nПересланные сообщения:\n";
+                    foreach (JToken v in forwardsArray) {
+                        
+                        foreach (KeyValuePair<string, JToken> fwv in forwardsObject)
+                        {
+                            if (fwv.Key.Equals(v.ToString())) {
+                                JObject fwvObject = JObject.Parse(fwv.Value.ToString());
+                                string forwardAuthor = memberDict[fwvObject["authorId"].ToString()];
+                                string forwardInput = fwvObject["textInput"].ToString();
+                                string forwardAttaches = "";
+
+                                if (fwvObject["attaches"].Type == JTokenType.Object)
+                                {
+                                    JObject fwvAttachesObject = (JObject)fwvObject["attaches"];
+                                    string temp = fwvAttachesObject.ToString();
+                                    forwardAttaches += temp.Substring(5, temp.Length - 7);
+                                }
+                                forward += String.Format("{0,-14} - {1} {2}\n", forwardAuthor, forwardInput, forwardAttaches);
+                            }
+                        }
+
+                    }
+                }
                 
-                result.Add(new DialogMessage(name, message["textInput"].ToString(), message["date"].ToString(), attachesText, docs));
+                result.Add(new DialogMessage(name, message["textInput"].ToString(), message["date"].ToString(), attachesText + forward, docs));
             }
             
             return result;
