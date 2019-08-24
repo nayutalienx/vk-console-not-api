@@ -78,7 +78,17 @@ namespace vk_console.process
             }
             string messageJson = stuff.data[0].msgs.ToString();
             string forwardsJson = stuff.data[0].forwards.ToString();
-            JObject forwardsObject = JObject.Parse(forwardsJson);
+            JObject forwardsObject = null;
+            if (forwardsJson != null)
+            {
+                try
+                {
+                    forwardsObject = JObject.Parse(forwardsJson);
+                }
+                catch (Exception e) {
+                    forwardsObject = null;
+                }
+            }
             o = JObject.Parse(messageJson);
             bool outerMessageFlag = true;
             
@@ -115,29 +125,35 @@ namespace vk_console.process
                 }
 
                 string forward = "";
-                JArray forwardsArray = (JArray)message["forwards"];
-                if (forwardsArray.Count > 0) {
-                    forward += "\nПересланные сообщения:\n";
-                    foreach (JToken v in forwardsArray) {
-                        
-                        foreach (KeyValuePair<string, JToken> fwv in forwardsObject)
+                if (forwardsObject != null)
+                {
+                    JArray forwardsArray = (JArray)message["forwards"];
+                    if (forwardsArray.Count > 0)
+                    {
+                        forward += "\nПересланные сообщения:\n";
+                        foreach (JToken v in forwardsArray)
                         {
-                            if (fwv.Key.Equals(v.ToString())) {
-                                JObject fwvObject = JObject.Parse(fwv.Value.ToString());
-                                string forwardAuthor = memberDict[fwvObject["authorId"].ToString()];
-                                string forwardInput = fwvObject["textInput"].ToString();
-                                string forwardAttaches = "";
 
-                                if (fwvObject["attaches"].Type == JTokenType.Object)
+                            foreach (KeyValuePair<string, JToken> fwv in forwardsObject)
+                            {
+                                if (fwv.Key.Equals(v.ToString()))
                                 {
-                                    JObject fwvAttachesObject = (JObject)fwvObject["attaches"];
-                                    string temp = fwvAttachesObject.ToString();
-                                    forwardAttaches += temp.Substring(5, temp.Length - 7);
-                                }
-                                forward += String.Format("{0,-14} - {1} {2}\n", forwardAuthor, forwardInput, forwardAttaches);
-                            }
-                        }
+                                    JObject fwvObject = JObject.Parse(fwv.Value.ToString());
+                                    string forwardAuthor = memberDict[fwvObject["authorId"].ToString()];
+                                    string forwardInput = fwvObject["textInput"].ToString();
+                                    string forwardAttaches = "";
 
+                                    if (fwvObject["attaches"].Type == JTokenType.Object)
+                                    {
+                                        JObject fwvAttachesObject = (JObject)fwvObject["attaches"];
+                                        string temp = fwvAttachesObject.ToString();
+                                        forwardAttaches += temp.Substring(5, temp.Length - 7);
+                                    }
+                                    forward += String.Format("{0,-14} - {1} {2}\n", forwardAuthor, forwardInput, forwardAttaches);
+                                }
+                            }
+
+                        }
                     }
                 }
                 
