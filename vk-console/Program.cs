@@ -19,6 +19,7 @@ namespace vk_console
             "\n### Команды:",
             "### dialogs [получить список диалогов]",
             "### moreDialogs [получить более старые диалоги]",
+            "### !moreDialogs [получить более новые диалоги]",
             "### Имя Фамилия [получить сообщения диалога]",
             "### more [получить более старые сообщения диалога]",
             "### ~текст сообщения [отправить сообщение в последний посещенный диалог]",
@@ -48,7 +49,7 @@ namespace vk_console
             ConnectVk connection = new ConnectVk(login, password);
             bool uiFlag = true;
             List<IDialog> dialogs = null;
-            int offset = 20;
+            int offset = 0;
 
             if (DataBase.Read("authFlag") == null || DataBase.Read("authFlag").Equals("false"))
             {
@@ -74,12 +75,12 @@ namespace vk_console
 
 
             List<IDialog> messages = null;
+            
             while (uiFlag)
             {
                 Console.ForegroundColor = ConsoleColor.Black;
                 Console.BackgroundColor = ConsoleColor.Gray;
-                foreach(string v in commands)
-                    Console.WriteLine(String.Format("{0}", v));
+                Console.WriteLine("\n### help [показать все команды]");
                 Console.ResetColor();
                 
                 Console.BufferWidth++;
@@ -94,7 +95,13 @@ namespace vk_console
                 string command = Console.ReadLine();
                 switch (command)
                 {
-
+                    case "help":
+                        Console.ForegroundColor = ConsoleColor.Black;
+                        Console.BackgroundColor = ConsoleColor.Gray;
+                        foreach (string v in commands)
+                            Console.WriteLine(String.Format("{0}", v));
+                        Console.ResetColor();
+                        break;
                     case "dialogs":
                         try
                         {
@@ -110,20 +117,31 @@ namespace vk_console
                         }
 
                         dialogs = Process.ParseDialogs(Process.ReadDialogHtmlFromJson());
-                        offset = 20;
+                        offset = 0;
                         PrintDialogData(dialogs);
                         break;
                     case "moreDialogs":
+                        offset += 20;
                         connection.GetMoreDialogs(offset.ToString());
 
                         dialogs = Process.ParseMoreDialogsFromJson();
-                        offset += 20;
+                        
+                        PrintDialogData(dialogs);
+                        break;
+                    case "!moreDialogs":
+                        if(offset >= 20)
+                            offset -= 20;
+                        connection.GetMoreDialogs(offset.ToString());
+
+                        dialogs = Process.ParseMoreDialogsFromJson();
+                        
                         PrintDialogData(dialogs);
                         break;
                     case "more":
                         if (DataBase.Read("OuterMessageId") != null) {
-                            connection.GetMoreTalker(currentPeer);
-                            messages = Process.ReadMessagesFromJson(DataBase.Read("TalkerResponse").ToString());
+                            connection.GetMoreTalker(currentPeer, DataBase.Read("OuterMessageId").ToString());
+                            messages.InsertRange(0, Process.ReadMessagesFromJson(DataBase.Read("TalkerResponse").ToString()));
+
                             PrintDialogData(messages);
                         }
                         break;

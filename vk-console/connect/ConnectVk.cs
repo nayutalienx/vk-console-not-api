@@ -226,7 +226,7 @@ namespace vk_console
             }
         }
 
-        public void GetMoreTalker(string peer) {
+        public void GetMoreTalker(string peer, string msgid) {
             //  POST request to get MORE messages with current talker
             using (HttpRequest request = new HttpRequest())
             {
@@ -249,7 +249,7 @@ namespace vk_console
                 RequestParams Params = new RequestParams();
                 Params["act"] = "show";
                 Params["peer_id"] = peer;
-                Params["msg"] = DataBase.Read("OuterMessageId");
+                Params["msg"] = msgid;
                 Params["direction"] = "before";
                 Params["_ajax"] = "1";
 

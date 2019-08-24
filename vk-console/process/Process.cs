@@ -10,6 +10,7 @@ namespace vk_console.process
 {
     class Process
     {
+        
         public static string ReadDialogHtmlFromJson()
         {
             string json = DataBase.Read("DialogResponse").ToString();
@@ -78,6 +79,7 @@ namespace vk_console.process
             string messageJson = stuff.data[0].msgs.ToString();
             o = JObject.Parse(messageJson);
             bool outerMessageFlag = true;
+            
             foreach (KeyValuePair<string, JToken> property in o)
             {
                 if (outerMessageFlag) {
@@ -85,7 +87,9 @@ namespace vk_console.process
                     outerMessageFlag = false;
                 }
                 JObject message = JObject.Parse(property.Value.ToString());
+                
                 string name = memberDict[message["authorId"].ToString()];
+                
                 string attachesText = "";
                 if (message["attaches"].Type == JTokenType.Object)
                 {
@@ -107,10 +111,10 @@ namespace vk_console.process
                         docs.Add("https://m.vk.com" + href, spanWithName.Text());
                     });   
                 }
-
+                
                 result.Add(new DialogMessage(name, message["textInput"].ToString(), message["date"].ToString(), attachesText, docs));
             }
-
+            
             return result;
         }
 
